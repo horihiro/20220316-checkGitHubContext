@@ -22,7 +22,7 @@ jobs:
           echo ${{ github.env }}
 
 # Replace tokens in src/MyHealth.Web/appsettings.json with env
-      - uses: cschleiden/replace-tokens@v1.1
+      - uses: horihiro/replace-tokens@master
         with:
           tokenPrefix: '__'
           tokenSuffix: '__'
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@main
 
       # Replace tokens in src/MyHealth.Web/appsettings.json with env
-      - uses: cschleiden/replace-tokens@v1.1
+      - uses: horihiro/replace-tokens@master
         with:
           tokenPrefix: '__'
           tokenSuffix: '__'
