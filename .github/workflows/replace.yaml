@@ -1,0 +1,44 @@
+on:
+  workflow_dispatch:
+
+env:
+  SQL_SERVER: sqlserver-devops-handson.database.windows.net
+  DatabaseName: mhcdb
+  RESOURCE_GROUP_NAME: a-rg-aks-devops-handson
+  AKS_CLUSTER_NAME: aks-devops
+
+jobs:
+  test1:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@main
+
+      # Import secrets
+      - uses: Firenza/secrets-to-env@v1.1.0
+        with:
+          secrets: ${{ toJSON(secrets) }}
+
+      # Replace tokens in src/MyHealth.Web/appsettings.json with env
+      - uses: cschleiden/replace-tokens@v1.1
+        with:
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+          files: '["src/MyHealth.Web/appsettings.json"]'
+      - run: |
+          cat src/MyHealth.Web/appsettings.json
+  test2:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@main
+
+      # Replace tokens in src/MyHealth.Web/appsettings.json with env
+      - uses: cschleiden/replace-tokens@v1.1
+        with:
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+          files: '["src/MyHealth.Web/appsettings.json"]'
+        env:
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+      - run: |
+          cat src/MyHealth.Web/appsettings.json
