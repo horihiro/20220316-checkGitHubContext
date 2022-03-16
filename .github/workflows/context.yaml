@@ -9,6 +9,8 @@ env:
   ACR: crdevopshandson.azurecr.io
   SQLserver: sqlserver-devops-handson.database.windows.net
   DatabaseName: mhcdb
+  RESOURCE_GROUP_NAME: a-rg-aks-devops-handson
+  AKS_CLUSTER_NAME: aks-devops
 
 jobs:
   build:
@@ -86,3 +88,17 @@ jobs:
           server-name: ${{ env.SQLserver }}
           connection-string: "Server=tcp:${{ env.SQLserver }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQLuser }};Password=${{ secrets.SQLpassword }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
           dacpac-package: './myhealthclinic.dacpac'
+
+      # Prepeare k8s context
+      - uses: azure/aks-set-context@v2.0
+        with:
+          resource-group: ${{ env.RESOURCE_GROUP_NAME }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+      # Apply manifest to AKS
+      # Deploy app to AKS
+      - uses: azure/k8s-deploy@v1
+        with:
+          manifests: |
+            ./mhc-aks.yaml
+
+      # Update to latest image
