@@ -1,0 +1,21 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - id: setImageTag
+        run: |
+          echo "::set-output name=IMAGE_TAG::${{ github.job }}"
+
+      - run: |
+          echo "${{ steps.setImageTag.outputs.IMAGE_TAG }}"
+     outputs:
+      IMAGE_TAG: ${{ steps.setImageTag.outputs.IMAGE_TAG}}
+  deploy:
+    needs: build
+    runs-on: ubuntu-18.04
+    steps:
+      - run: |
+          echo "${{ needs.build.outputs.IMAGE_TAG }}"
