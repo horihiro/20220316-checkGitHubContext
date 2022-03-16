@@ -56,7 +56,7 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }}
       - run: |
           docker build . -t ${{ env.ACR }}/myhealth.web:${{ steps.setImageTag.outputs.IMAGE_TAG }} -t ${{ env.ACR }}/myhealth.web:latest
-          docker push ${{ env.ACR }}/myhealth.web
+          docker push ${{ env.ACR }}/myhealth.web:${{ steps.setImageTag.outputs.IMAGE_TAG }} ${{ env.ACR }}/myhealth.web:latest
         working-directory: ./src/MyHealth.Web
 
     outputs:
