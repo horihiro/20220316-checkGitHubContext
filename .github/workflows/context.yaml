@@ -60,9 +60,10 @@ jobs:
     outputs:
       IMAGE_TAG: 1
       # ${{ steps.setImageTag.outputs.IMAGE_TAG}}
-  deploy:
+
+  deploy-to-AKS:
     needs: build
-    runs-on: windows-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@main
       - uses: cschleiden/replace-tokens@v1.1
@@ -71,8 +72,8 @@ jobs:
           tokenSuffix: '__'
           files: '["mhc-aks.yaml"]'
 
-      - run: |
-          type ./mhc-aks.yaml
+      # - run: |
+      #     type ./mhc-aks.yaml
 
       # Login to Azure
       # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
@@ -81,14 +82,6 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      # Execute Azure SQL : Apply Dacpac
-      # https://docs.microsoft.com/ja-jp/azure/azure-sql/database/connect-github-actions-sql-db
-      - uses: azure/sql-action@v1
-        with:
-          server-name: ${{ env.SQLserver }}
-          connection-string: "Server=tcp:${{ env.SQLserver }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQLuser }};Password=${{ secrets.SQLpassword }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-          dacpac-package: './myhealthclinic.dacpac'
 
       # Prepeare k8s context
       - uses: azure/aks-set-context@v2.0
@@ -103,4 +96,27 @@ jobs:
 
       # Update image in AKS
       - run: | 
-          kubectl set image deployments/mhc-front mhc-front=${{ env.ACR }}/myhealth.web.github:${{ needs.setImageTag.outputs.IMAGE_TAG}}
+          kubectl set image deployments/mhc-front mhc-front=${{ env.ACR }}/myhealth.web.github:${{ needs.build.outputs.IMAGE_TAG}}
+
+  deploy-to-SQL:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@main
+
+      # # Login to Azure
+      # # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
+      # - uses: azure/login@v1.4.0
+      #   with:
+      #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Execute Azure SQL : Apply Dacpac
+      # https://docs.microsoft.com/ja-jp/azure/azure-sql/database/connect-github-actions-sql-db
+      - uses: azure/sql-action@v1
+        with:
+          server-name: ${{ env.SQLserver }}
+          connection-string: "Server=tcp:${{ env.SQLserver }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQLuser }};Password=${{ secrets.SQLpassword }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          dacpac-package: './myhealthclinic.dacpac'
+
