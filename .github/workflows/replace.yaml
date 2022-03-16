@@ -21,27 +21,32 @@ jobs:
       - run: |
           echo ${{ github.env }}
 
-# Replace tokens in src/MyHealth.Web/appsettings.json with env
-      - uses: horihiro/replace-tokens@master
-        with:
-          tokenPrefix: '__'
-          tokenSuffix: '__'
-          files: '["src/MyHealth.Web/appsettings.json"]'
-      - run: |
-          cat src/MyHealth.Web/appsettings.json
-  test2:
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@main
-
       # Replace tokens in src/MyHealth.Web/appsettings.json with env
       - uses: horihiro/replace-tokens@master
         with:
           tokenPrefix: '__'
           tokenSuffix: '__'
           files: '["src/MyHealth.Web/appsettings.json"]'
-        env:
-          SQL_USER: ${{ secrets.SQL_USER }}
-          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
       - run: |
           cat src/MyHealth.Web/appsettings.json
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: appsettings
+          path: src/MyHealth.Web/appsettings.json
+  # test2:
+  #   runs-on: ubuntu-18.04
+  #   steps:
+  #     - uses: actions/checkout@main
+
+  #     # Replace tokens in src/MyHealth.Web/appsettings.json with env
+  #     - uses: horihiro/replace-tokens@master
+  #       with:
+  #         tokenPrefix: '__'
+  #         tokenSuffix: '__'
+  #         files: '["src/MyHealth.Web/appsettings.json"]'
+  #       env:
+  #         SQL_USER: ${{ secrets.SQL_USER }}
+  #         SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+  #     - run: |
+  #         cat src/MyHealth.Web/appsettings.json
