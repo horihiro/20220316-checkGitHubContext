@@ -58,7 +58,7 @@ jobs:
       #     docker push ${{ env.ACR }}/myhealth.web.github
       #   working-directory: ./src/MyHealth.Web
     outputs:
-      IMAGE_TAG: 12
+      IMAGE_TAG: 1
       # ${{ steps.setImageTag.outputs.IMAGE_TAG}}
   deploy:
     needs: build
