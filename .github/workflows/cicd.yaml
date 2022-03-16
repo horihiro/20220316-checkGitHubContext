@@ -23,11 +23,10 @@ jobs:
         run: |
           echo "::set-output name=IMAGE_TAG::${{ github.run_number }}"
 
-      # Import secrets starting with `SQL` to env
+      # Import secrets
       - uses: Firenza/secrets-to-env@v1.1.0
         with:
           secrets: ${{ toJSON(secrets) }}
-          secret_filter_regex: SQL*
 
       # Replace tokens in src/MyHealth.Web/appsettings.json with env
       - uses: cschleiden/replace-tokens@v1.1
@@ -35,6 +34,8 @@ jobs:
           tokenPrefix: '__'
           tokenSuffix: '__'
           files: '["src/MyHealth.Web/appsettings.json"]'
+      - run: |
+          cat src/MyHealth.Web/appsettings.json
 
       # dotnet build
       # https://docs.microsoft.com/ja-jp/dotnet/architecture/devops-for-aspnet-developers/actions-build
@@ -73,7 +74,7 @@ jobs:
       - uses: azure/sql-action@v1
         with:
           server-name: ${{ env.SQLserver }}
-          connection-string: "Server=tcp:${{ env.SQLserver }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQLuser }};Password=${{ secrets.SQLpassword }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          connection-string: "Server=tcp:${{ env.SQL_SEVRER }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQL_USER }};Password=${{ secrets.SQL_PASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
           dacpac-package: './myhealthclinic.dacpac'
 
       - id: setImageTag
