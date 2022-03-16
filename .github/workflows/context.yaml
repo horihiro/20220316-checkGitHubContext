@@ -11,7 +11,7 @@ jobs:
 
       - run: |
           echo "${{ steps.setImageTag.outputs.IMAGE_TAG }}"
-     outputs:
+    outputs:
       IMAGE_TAG: ${{ steps.setImageTag.outputs.IMAGE_TAG}}
   deploy:
     needs: build
