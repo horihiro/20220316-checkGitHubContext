@@ -68,8 +68,8 @@ jobs:
           tokenSuffix: '__'
           files: '["mhc-aks.yaml"]'
 
-      - run: |
-          cat ./mhc-aks.yaml
+      # - run: |
+      #     cat ./mhc-aks.yaml
 
       # Login to Azure
       # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
@@ -78,3 +78,11 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Create tables in SQL DB
+      # https://docs.microsoft.com/ja-jp/azure/azure-sql/database/connect-github-actions-sql-db
+      - uses: azure/sql-action@v1
+        with:
+          server-name: ${{ env.SQLserver }}
+          connection-string: "Server=tcp:${{ env.SQLserver }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQLuser }};Password=${{ secrets.SQLpassword }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          dacpac-package: './myhealthclinic.dacpac'
