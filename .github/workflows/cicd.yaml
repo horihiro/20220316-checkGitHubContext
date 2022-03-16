@@ -1,0 +1,120 @@
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ACR: crdevopshandson.azurecr.io
+  SQLserver: sqlserver-devops-handson.database.windows.net
+  DatabaseName: mhcdb
+  RESOURCE_GROUP_NAME: a-rg-aks-devops-handson
+  AKS_CLUSTER_NAME: aks-devops
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@main
+
+      # Set image tag from workflow run-number
+      - id: setImageTag
+        run: |
+          echo "::set-output name=IMAGE_TAG::${{ github.run_number }}"
+
+      # Import secrets starting with `SQL` to env
+      - uses: Firenza/secrets-to-env@v1.1.0
+        with:
+          secrets: ${{ toJSON(secrets) }}
+          secret_filter_regex: SQL*
+
+      # Replace tokens in src/MyHealth.Web/appsettings.json with env
+      - uses: cschleiden/replace-tokens@v1.1
+        with:
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+          files: '["src/MyHealth.Web/appsettings.json"]'
+
+      # dotnet build
+      # https://docs.microsoft.com/ja-jp/dotnet/architecture/devops-for-aspnet-developers/actions-build
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 2.0.0
+      - name: Restore dependencies
+        run: dotnet restore ./MHC_ASPNetCore.sln
+      - name: Build
+        run: dotnet publish ./MHC_ASPNetCore.sln -c Release -o ./obj/Docker/publish
+
+      # docker build & push
+      # https://docs.microsoft.com/ja-jp/azure/aks/kubernetes-action
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.ACR }}
+          username: ${{ secrets.ACR_USERNAME }} 
+          password: ${{ secrets.ACR_PASSWORD }}
+      - run: |
+          docker build . -t ${{ env.ACR }}/myhealth.web:${{ steps.setImageTag.outputs.IMAGE_TAG }} -t ${{ env.ACR }}/myhealth.web:latest
+          docker push ${{ env.ACR }}/myhealth.web
+        working-directory: ./src/MyHealth.Web
+
+    outputs:
+      IMAGE_TAG: ${{ steps.setImageTag.outputs.IMAGE_TAG}}
+
+  deploy-to-SQL:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@main
+
+      # Execute Azure SQL : Apply Dacpac
+      # https://docs.microsoft.com/ja-jp/azure/azure-sql/database/connect-github-actions-sql-db
+      - uses: azure/sql-action@v1
+        with:
+          server-name: ${{ env.SQLserver }}
+          connection-string: "Server=tcp:${{ env.SQLserver }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQLuser }};Password=${{ secrets.SQLpassword }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          dacpac-package: './myhealthclinic.dacpac'
+
+      - id: setImageTag
+        run: |
+          echo "::set-output name=IMAGE_TAG::${{ needs.build.outputs.IMAGE_TAG }}"
+
+    outputs:
+      IMAGE_TAG: ${{ steps.setImageTag.outputs.IMAGE_TAG}}
+
+  deploy-to-AKS:
+    needs: deploy-to-SQL
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@main
+
+      # Replace tokens in mhc-aks.yaml with env
+      - uses: cschleiden/replace-tokens@v1.1
+        with:
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+          files: '["mhc-aks.yaml"]'
+
+      # Login to Azure
+      # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
+      - uses: azure/login@v1.4.0
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Prepeare k8s context
+      - uses: azure/aks-set-context@v2.0
+        with:
+          resource-group: ${{ env.RESOURCE_GROUP_NAME }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+      # Create Deployments & Services in AKS
+      - uses: azure/k8s-deploy@v1
+        with:
+          manifests: |
+            ./mhc-aks.yaml
+
+      # Update image in AKS
+      - run: | 
+          kubectl set image deployments/mhc-front mhc-front=${{ env.ACR }}/myhealth.web:${{ needs.build.outputs.IMAGE_TAG}}
