@@ -1,10 +1,14 @@
 on:
   workflow_dispatch:
 
+permissions:
+  id-token: write
+
 env:
   ACR: crdevopshandson.azurecr.io
   SQLserver: sqlserver-devops-handson.database.windows.net
   DatabaseName: mhcdb
+
 jobs:
   build:
     runs-on: ubuntu-18.04
