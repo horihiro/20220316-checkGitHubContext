@@ -18,7 +18,10 @@ jobs:
         with:
           secrets: ${{ toJSON(secrets) }}
 
-      # Replace tokens in src/MyHealth.Web/appsettings.json with env
+      - run: |
+          echo ${{ github.env }}
+
+# Replace tokens in src/MyHealth.Web/appsettings.json with env
       - uses: cschleiden/replace-tokens@v1.1
         with:
           tokenPrefix: '__'
