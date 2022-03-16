@@ -7,7 +7,7 @@ jobs:
     steps:
       - id: setImageTag
         run: |
-          echo "::set-output name=IMAGE_TAG::${{ github.job }}"
+          echo "::set-output name=IMAGE_TAG::${{ github.action }}"
 
       - run: |
           echo "${{ steps.setImageTag.outputs.IMAGE_TAG }}"
