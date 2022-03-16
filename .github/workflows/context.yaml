@@ -58,7 +58,8 @@ jobs:
       #     docker push ${{ env.ACR }}/myhealth.web.github
       #   working-directory: ./src/MyHealth.Web
     outputs:
-      IMAGE_TAG: ${{ steps.setImageTag.outputs.IMAGE_TAG}}
+      IMAGE_TAG: 12
+      # ${{ steps.setImageTag.outputs.IMAGE_TAG}}
   deploy:
     needs: build
     runs-on: windows-latest
@@ -81,7 +82,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # Create tables in SQL DB
+      # Execute Azure SQL : Apply Dacpac
       # https://docs.microsoft.com/ja-jp/azure/azure-sql/database/connect-github-actions-sql-db
       - uses: azure/sql-action@v1
         with:
@@ -94,11 +95,12 @@ jobs:
         with:
           resource-group: ${{ env.RESOURCE_GROUP_NAME }}
           cluster-name: ${{ env.AKS_CLUSTER_NAME }}
-      # Apply manifest to AKS
-      # Deploy app to AKS
+      # Create Deployments & Services in AKS
       - uses: azure/k8s-deploy@v1
         with:
           manifests: |
             ./mhc-aks.yaml
 
-      # Update to latest image
+      # Update image in AKS
+      - run: | 
+          kubectl set image deployments/mhc-front mhc-front=${{ env.ACR }}/myhealth.web.github:${{ needs.setImageTag.outputs.IMAGE_TAG}}
