@@ -59,7 +59,7 @@ jobs:
       IMAGE_TAG: ${{ steps.setImageTag.outputs.IMAGE_TAG}}
   deploy:
     needs: build
-    runs-on: ubuntu-18.04
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@main
       - uses: cschleiden/replace-tokens@v1.1
@@ -68,8 +68,8 @@ jobs:
           tokenSuffix: '__'
           files: '["mhc-aks.yaml"]'
 
-      # - run: |
-      #     cat ./mhc-aks.yaml
+      - run: |
+          type ./mhc-aks.yaml
 
       # Login to Azure
       # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
