@@ -74,7 +74,7 @@ jobs:
       - uses: azure/sql-action@v1
         with:
           server-name: ${{ env.SQLserver }}
-          connection-string: "Server=tcp:${{ env.SQL_SEVRER }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQL_USER }};Password=${{ secrets.SQL_PASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          connection-string: "Server=tcp:${{ env.SQL_SERVER }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQL_USER }};Password=${{ secrets.SQL_PASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
           dacpac-package: './myhealthclinic.dacpac'
 
       - id: setImageTag
