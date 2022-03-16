@@ -7,7 +7,7 @@ permissions:
 
 env:
   ACR: crdevopshandson.azurecr.io
-  SQLserver: sqlserver-devops-handson.database.windows.net
+  SQL_SERVER: sqlserver-devops-handson.database.windows.net
   DatabaseName: mhcdb
   RESOURCE_GROUP_NAME: a-rg-aks-devops-handson
   AKS_CLUSTER_NAME: aks-devops
