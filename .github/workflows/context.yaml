@@ -1,21 +1,75 @@
 on:
   workflow_dispatch:
 
+env:
+  ACR: crdevopshandson.azurecr.io
+  SQLserver: sqlserver-devops-handson.database.windows.net
+  DatabaseName: mhcdb
 jobs:
   build:
     runs-on: ubuntu-18.04
     steps:
+      - uses: actions/checkout@main
+
+      # Set image tag from workflow run-number
       - id: setImageTag
         run: |
           echo "::set-output name=IMAGE_TAG::${{ github.run_number }}"
 
-      - run: |
-          echo "${{ steps.setImageTag.outputs.IMAGE_TAG }}"
+      # # Import secrets starting with `SQL` to env
+      # - uses: Firenza/secrets-to-env@v1.1.0
+      #   with:
+      #     secrets: ${{ toJSON(secrets) }}
+      #     secret_filter_regex: SQL*
+      # # Replace tokes in src/MyHealth.Web/appsettings.json with env
+      # - uses: cschleiden/replace-tokens@v1.1
+      #   with:
+      #     tokenPrefix: '__'
+      #     tokenSuffix: '__'
+      #     files: '["src/MyHealth.Web/appsettings.json"]'
+
+      # # dotnet build
+      # # https://docs.microsoft.com/ja-jp/dotnet/architecture/devops-for-aspnet-developers/actions-build
+      # - name: Setup .NET
+      #   uses: actions/setup-dotnet@v1
+      #   with:
+      #     dotnet-version: 2.0.0
+      # - name: Restore dependencies
+      #   run: dotnet restore ./MHC_ASPNetCore.sln
+      # - name: Build
+      #   run: dotnet publish ./MHC_ASPNetCore.sln -c Release -o ./obj/Docker/publish
+
+      # # docker build & push
+      # # https://docs.microsoft.com/ja-jp/azure/aks/kubernetes-action
+      # - uses: azure/docker-login@v1
+      #   with:
+      #     login-server: ${{ env.ACR }}
+      #     username: ${{ secrets.ACR_USERNAME }} 
+      #     password: ${{ secrets.ACR_PASSWORD }}
+      # - run: |
+      #     docker build . -t ${{ env.ACR }}/myhealth.web.github:${{ steps.setImageTag.outputs.IMAGE_TAG }} -t ${{ env.ACR }}/myhealth.web.github:latest
+      #     docker push ${{ env.ACR }}/myhealth.web.github
+      #   working-directory: ./src/MyHealth.Web
     outputs:
       IMAGE_TAG: ${{ steps.setImageTag.outputs.IMAGE_TAG}}
   deploy:
     needs: build
     runs-on: ubuntu-18.04
     steps:
+      - uses: actions/checkout@main
+      - uses: cschleiden/replace-tokens@v1.1
+        with:
+          tokenPrefix: '__'
+          tokenSuffix: '__'
+          files: '["mhc-aks.yaml"]'
+
       - run: |
-          echo "${{ needs.build.outputs.IMAGE_TAG }}"
+          cat ./mhc-aks.yaml
+
+      # Login to Azure
+      # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
+      - uses: azure/login@v1.4.0
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
