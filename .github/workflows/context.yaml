@@ -61,8 +61,37 @@ jobs:
       IMAGE_TAG: 1
       # ${{ steps.setImageTag.outputs.IMAGE_TAG}}
 
-  deploy-to-AKS:
+  deploy-to-SQL:
     needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@main
+
+      # # Login to Azure
+      # # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
+      # - uses: azure/login@v1.4.0
+      #   with:
+      #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Execute Azure SQL : Apply Dacpac
+      # https://docs.microsoft.com/ja-jp/azure/azure-sql/database/connect-github-actions-sql-db
+      - uses: azure/sql-action@v1
+        with:
+          server-name: ${{ env.SQLserver }}
+          connection-string: "Server=tcp:${{ env.SQLserver }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQLuser }};Password=${{ secrets.SQLpassword }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          dacpac-package: './myhealthclinic.dacpac'
+
+      # Set image tag from workflow run-number
+      - id: setImageTag
+        run: |
+          echo "::set-output name=IMAGE_TAG::${{ needs.build.outputs.IMAGE_TAG}}"
+    outputs:
+      IMAGE_TAG: ${{ steps.setImageTag.outputs.IMAGE_TAG}}
+
+  deploy-to-AKS:
+    needs: deploy-to-SQL
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@main
@@ -96,27 +125,5 @@ jobs:
 
       # Update image in AKS
       - run: | 
-          kubectl set image deployments/mhc-front mhc-front=${{ env.ACR }}/myhealth.web.github:${{ needs.build.outputs.IMAGE_TAG}}
-
-  deploy-to-SQL:
-    needs: build
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@main
-
-      # # Login to Azure
-      # # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
-      # - uses: azure/login@v1.4.0
-      #   with:
-      #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
-      #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-      #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      # Execute Azure SQL : Apply Dacpac
-      # https://docs.microsoft.com/ja-jp/azure/azure-sql/database/connect-github-actions-sql-db
-      - uses: azure/sql-action@v1
-        with:
-          server-name: ${{ env.SQLserver }}
-          connection-string: "Server=tcp:${{ env.SQLserver }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQLuser }};Password=${{ secrets.SQLpassword }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-          dacpac-package: './myhealthclinic.dacpac'
+          kubectl set image deployments/mhc-front mhc-front=${{ env.ACR }}/myhealth.web.github:${{ needs.deploy-to-SQL.outputs.IMAGE_TAG}}
 
