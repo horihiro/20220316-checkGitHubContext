@@ -118,4 +118,4 @@ jobs:
 
       # Update image in AKS
       - run: | 
-          kubectl set image deployments/mhc-front mhc-front=${{ env.ACR }}/myhealth.web:${{ needs.build.outputs.IMAGE_TAG}}
+          kubectl set image deployments/mhc-front mhc-front=${{ env.ACR }}/myhealth.web:${{ needs.deploy-to-SQL.outputs.IMAGE_TAG}}
