@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  ACR: crdevopshandson.azurecr.io
+  ACR: acrdevopsgithub.azurecr.io
 
 jobs:
   publish:
