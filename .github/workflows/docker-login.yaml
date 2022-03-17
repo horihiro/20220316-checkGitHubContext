@@ -25,7 +25,7 @@ jobs:
       - name: "Login to ACR"
         id: getRefreshToken
         run: |
-          set -euo pipefail
+          # set -euo pipefail
           # see https://cloudarchitected.com/2021/09/logging-into-acr-in-github-actions/
           # see https://github.com/Azure/acr/blob/main/docs/AAD-OAuth.md#calling-post-oauth2exchange-to-get-an-acr-refresh-token
           az account get-access-token --query accessToken -o tsv
