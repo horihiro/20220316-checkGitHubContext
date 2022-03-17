@@ -28,6 +28,7 @@ jobs:
           az account show
           access_token=$(az account get-access-token --query accessToken -o tsv)
           echo $access_token
+          curl https://${{ env.ACR }}/oauth2/exchange -s -d "grant_type=access_token&service=${{ env.ACR }}&access_token=$access_token"
           refresh_token=$(curl https://${{ env.ACR }}/oauth2/exchange -s -d "grant_type=access_token&service=${{ env.ACR }}&access_token=$access_token" | jq -r .refresh_token)
           echo $refresh_token
           # # The null GUID 0000... tells the container registry that this is an ACR refresh token during the login flow
