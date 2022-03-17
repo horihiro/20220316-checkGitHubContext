@@ -23,6 +23,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }} 
 
       - name: "Login to ACR"
+        id: getRefreshToken
         run: |
           set -euo pipefail
           # see https://cloudarchitected.com/2021/09/logging-into-acr-in-github-actions/
@@ -32,4 +33,13 @@ jobs:
           curl https://${{ env.ACR }}/oauth2/exchange -s -d "grant_type=access_token&service=${{ env.ACR }}&access_token=$access_token" | jq -r .refresh_token
           refresh_token=$(curl https://${{ env.ACR }}/oauth2/exchange -s -d "grant_type=access_token&service=${{ env.ACR }}&access_token=$access_token" | jq -r .refresh_token)
           # The null GUID 0000... tells the container registry that this is an ACR refresh token during the login flow
-          docker login -u 00000000-0000-0000-0000-000000000000 --password-stdin  ${{ env.ACR }} <<< "$refresh_token"
+          # docker login -u 00000000-0000-0000-0000-000000000000 --password-stdin  ${{ env.ACR }} <<< "$refresh_token"
+          echo "::set-output name=REFRESH_TOKEN::${refresh_token}"
+
+      - run: |
+          echo ${{ steps.getRefreshToken.outputs.REFRESH_TOKEN }}
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.ACR }}
+          username: 00000000-0000-0000-0000-000000000000
+          password: ${{ steps.getRefreshToken.outputs.REFRESH_TOKEN }}
