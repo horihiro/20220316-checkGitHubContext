@@ -18,18 +18,18 @@ jobs:
     steps:
       - uses: actions/checkout@main
 
-      # Set image tag from workflow run-number
-      - id: setImageTag
+      - name: Set image tag from workflow run-number
+        id: setImageTag
         run: |
           echo "::set-output name=IMAGE_TAG::${{ github.run_number }}"
 
-      # Import secrets
-      - uses: Firenza/secrets-to-env@v1.1.0
+      - name: Import secrets to envs
+        uses: Firenza/secrets-to-env@v1.1.0
         with:
           secrets: ${{ toJSON(secrets) }}
 
-      # Replace tokens in src/MyHealth.Web/appsettings.json with env
-      - uses: cschleiden/replace-tokens@v1.1
+      - name: Replace tokens in src/MyHealth.Web/appsettings.json with env
+        uses: cschleiden/replace-tokens@v1.1
         with:
           tokenPrefix: '__'
           tokenSuffix: '__'
@@ -41,39 +41,33 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 2.0.0
-      - name: Restore dependencies
+      - name: Restore .NET dependencies
         run: dotnet restore ./MHC_ASPNetCore.sln
-      - name: Build
+      - name: Build .NET app
         run: dotnet publish ./MHC_ASPNetCore.sln -c Release -o ./obj/Docker/publish
 
       # docker build & push
-      # https://docs.microsoft.com/ja-jp/azure/aks/kubernetes-action
-      # - uses: azure/docker-login@v1
-      #   with:
-      #     login-server: ${{ env.ACR }}
-      #     username: ${{ secrets.ACR_USERNAME }} 
-      #     password: ${{ secrets.ACR_PASSWORD }}
-
-      # Login to Azure
       # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
-      - uses: azure/login@v1
+      - name: Login to Azure
+        uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }} 
 
-      - name: "Login to ACR"
+      - name: Login to ACR
         run: |
           set -euo pipefail
           # see https://cloudarchitected.com/2021/09/logging-into-acr-in-github-actions/
-          # see https://github.com/Azure/acr/blob/main/docs/AAD-OAuth.md#calling-post-oauth2exchange-to-get-an-acr-refresh-token
           access_token=$(az account get-access-token --query accessToken -o tsv)
           echo ${access_token}
-          refresh_token=$(curl https://${{ env.ACR }}/oauth2/exchange -v -d "grant_type=access_token&service=${{ env.ACR }}&access_token=$access_token" | jq -r .refresh_token)
+          refresh_token=$(curl https://${{ env.ACR }}/oauth2/exchange -s -d "grant_type=access_token&service=${{ env.ACR }}&access_token=$access_token" | jq -r .refresh_token)
           # The null GUID 0000... tells the container registry that this is an ACR refresh token during the login flow
+          # see https://github.com/Azure/acr/blob/main/docs/AAD-OAuth.md#calling-post-oauth2exchange-to-get-an-acr-refresh-token
           docker login -u 00000000-0000-0000-0000-000000000000 --password-stdin  ${{ env.ACR }} <<< "$refresh_token"
-      # docker build & push
-      - run: |
+
+      - name: Docker build & push to ACR
+        run: |
           docker build . -t ${{ env.ACR }}/myhealth.web:${{ steps.setImageTag.outputs.IMAGE_TAG }} -t ${{ env.ACR }}/myhealth.web:latest
           docker push -a ${{ env.ACR }}/myhealth.web
         working-directory: ./src/MyHealth.Web
@@ -87,17 +81,17 @@ jobs:
     steps:
       - uses: actions/checkout@main
 
-      # Login to Azure
       # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
-      - uses: azure/login@v1
+      - name: Login to Azure
+        uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }} 
 
-      # Execute Azure SQL : Apply Dacpac
       # https://docs.microsoft.com/ja-jp/azure/azure-sql/database/connect-github-actions-sql-db
-      - uses: azure/sql-action@v1
+      - name: Apply Dacpac to Azure SQL server
+        uses: azure/sql-action@v1
         with:
           server-name: ${{ env.SQL_SERVER }}
           connection-string: "Server=tcp:${{ env.SQL_SERVER }},1433;Initial Catalog=${{ env.DatabaseName }};Persist Security Info=False;User ID=${{ secrets.SQL_USER }};Password=${{ secrets.SQL_PASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
@@ -116,32 +110,32 @@ jobs:
     steps:
       - uses: actions/checkout@main
 
-      # Replace tokens in mhc-aks.yaml with env
-      - uses: cschleiden/replace-tokens@v1.1
+      - name: Replace tokens in mhc-aks.yaml with env
+        uses: cschleiden/replace-tokens@v1.1
         with:
           tokenPrefix: '__'
           tokenSuffix: '__'
           files: '["mhc-aks.yaml"]'
 
-      # Login to Azure
       # https://docs.microsoft.com/ja-jp/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux
-      - uses: azure/login@v1.4.0
+      - name: Login to Azure
+        uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # Prepeare k8s context
-      - uses: azure/aks-set-context@v2.0
+      # AKS
+      - name: Prepeare k8s context
+        uses: azure/aks-set-context@v2.0
         with:
           resource-group: ${{ env.RESOURCE_GROUP_NAME }}
           cluster-name: ${{ env.AKS_CLUSTER_NAME }}
-      # Create Deployments & Services in AKS
-      - uses: azure/k8s-deploy@v1
+      - name: Create Deployments & Services in AKS
+        uses: azure/k8s-deploy@v1
         with:
           manifests: |
             ./mhc-aks.yaml
-
-      # Update image in AKS
-      - run: | 
+      - name: Update image in AKS
+        run: | 
           kubectl set image deployments/mhc-front mhc-front=${{ env.ACR }}/myhealth.web:${{ needs.deploy-to-SQL.outputs.IMAGE_TAG}}
