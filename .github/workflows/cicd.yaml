@@ -34,8 +34,6 @@ jobs:
           tokenPrefix: '__'
           tokenSuffix: '__'
           files: '["src/MyHealth.Web/appsettings.json"]'
-      - run: |
-          cat src/MyHealth.Web/appsettings.json
 
       # dotnet build
       # https://docs.microsoft.com/ja-jp/dotnet/architecture/devops-for-aspnet-developers/actions-build
@@ -76,6 +74,7 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
       # Execute Azure SQL : Apply Dacpac
       # https://docs.microsoft.com/ja-jp/azure/azure-sql/database/connect-github-actions-sql-db
