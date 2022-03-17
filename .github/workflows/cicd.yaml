@@ -6,11 +6,11 @@ permissions:
   contents: read
 
 env:
-  ACR: crdevopshandson.azurecr.io
-  SQL_SERVER: sqlserver-devops-handson.database.windows.net
+  ACR: acrdevopsgithub.azurecr.io
+  SQL_SERVER: sqlserver-devops-github.database.windows.net
   DatabaseName: mhcdb
-  RESOURCE_GROUP_NAME: a-rg-aks-devops-handson
-  AKS_CLUSTER_NAME: aks-devops
+  RESOURCE_GROUP_NAME: a-rg-aks-devops-github
+  AKS_CLUSTER_NAME: aks-devops-github
 
 jobs:
   build:
