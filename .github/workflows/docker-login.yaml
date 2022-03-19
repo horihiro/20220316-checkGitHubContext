@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  ACR: githubactions.azurecr.io
+  ACR: acrgithubactions.azurecr.io
   AZURE_CLIENT_ID: 22b51d87-6ce5-46f4-aa20-ae9e5074df71
 
 jobs:
@@ -26,12 +26,12 @@ jobs:
 
       - name: docker login, build and push
         run: |
-          # az acr login -n ${{ env.ACR }}
-          access_token=$(az account get-access-token --query accessToken -o tsv)
-          echo ${access_token}
-          refresh_token=$(curl https://${{ env.ACR }}/oauth2/exchange -s -d "grant_type=access_token&service=${{ env.ACR }}&access_token=$access_token&tenant=${{ secrets.AZURE_TENANT_ID }}" | jq -r .refresh_token)
-          echo ${refresh_token}
-          docker login -u 00000000-0000-0000-0000-000000000000 --password-stdin  ${{ env.ACR }} <<< "$refresh_token"
+          az acr login -n ${{ env.ACR }}
+          # access_token=$(az account get-access-token --query accessToken -o tsv)
+          # echo ${access_token}
+          # refresh_token=$(curl https://${{ env.ACR }}/oauth2/exchange -s -d "grant_type=access_token&service=${{ env.ACR }}&access_token=$access_token&tenant=${{ secrets.AZURE_TENANT_ID }}" | jq -r .refresh_token)
+          # echo ${refresh_token}
+          # docker login -u 00000000-0000-0000-0000-000000000000 --password-stdin  ${{ env.ACR }} <<< "$refresh_token"
           docker build . -t ${{ env.ACR }}/myhealth.web:latest
           docker push -a ${{ env.ACR }}/myhealth.web
         working-directory: ./src/MyHealth.Web
