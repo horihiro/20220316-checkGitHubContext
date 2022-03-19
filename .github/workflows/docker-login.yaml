@@ -9,7 +9,6 @@ permissions:
 
 env:
   ACR: acrgithubactions.azurecr.io
-  AZURE_CLIENT_ID: 22b51d87-6ce5-46f4-aa20-ae9e5074df71
 
 jobs:
   publish:
