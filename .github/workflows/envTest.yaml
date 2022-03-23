@@ -1,0 +1,13 @@
+on:
+  workflow_dispatch
+
+jobs:
+  runs-on: ubuntu-18.04
+  test:
+    steps:
+      - run: |
+          echo start
+      - run: |
+          echo finished
+        environment:
+          name: TestEnv
