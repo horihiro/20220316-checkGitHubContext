@@ -9,5 +9,5 @@ jobs:
   release:
     runs-on: ubuntu-18.04
     steps:
-      - run |
+      - run: |
           echo "finish"
