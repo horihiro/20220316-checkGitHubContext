@@ -1,0 +1,13 @@
+name: callee
+
+on:
+  workflow_run:
+    workflows: [caller]
+    types: [completed]
+
+jobs:
+  release:
+    runs-on: ubuntu-18.04
+    steps:
+      - run |
+          echo "finish"
