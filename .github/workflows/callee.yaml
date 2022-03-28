@@ -30,7 +30,8 @@ jobs:
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/tag.zip`, Buffer.from(download.data));
       - name: 'Unzip artifact'
-        run: unzip tag.zip
+        run: |
+          unzip tag.zip
       - name: 'Comment on PR'
         uses: actions/github-script@v5
         id: load-tag
@@ -40,5 +41,5 @@ jobs:
             let fs = require('fs');
             let tag = Number(fs.readFileSync('./tag'));
             return tag;
-        - run: |
+      - run: |
           echo "${{steps.load-tag.outputs.result}}"
