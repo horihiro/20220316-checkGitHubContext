@@ -9,3 +9,13 @@ jobs:
     steps:
       - run: |
           echo "start"
+      - name: Save PR number
+        env:
+          TAG: ${{ github.run_number }}
+        run: |
+          mkdir -p ./tags
+          echo $TAG > ./tags/tag
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tag
+          path: tags/
