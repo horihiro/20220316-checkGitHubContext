@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - run: |
-        chcp
+        chcp 952
     - uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
