@@ -10,6 +10,8 @@ jobs:
   login:
     runs-on: windows-latest
     steps:
+    - run: |
+        chcp
     - uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
