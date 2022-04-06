@@ -1,0 +1,12 @@
+name: Azure Login Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  login:
+    runs-on: windows-latest
+    steps:
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
