@@ -1,4 +1,4 @@
-name: Azure Login Test
+name: Azure Az Login Test
 
 on:
   workflow_dispatch:
@@ -11,4 +11,4 @@ jobs:
     runs-on: windows-latest
     steps:
     - run: |
-        az login --service-principal -u ${{ secrets.AZURE_CLINET_ID }} -p ${{ secrets.AZURE_CLINET_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+        az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
