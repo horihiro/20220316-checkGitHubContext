@@ -1,0 +1,14 @@
+name: Azure Login Test
+
+on:
+  workflow_dispatch:
+
+# permissions:
+#   id-token: write
+
+jobs:
+  login:
+    runs-on: windows-latest
+    steps:
+    - run: |
+        az login --service-principal -u ${{ secrets.AZURE_CLINET_ID }} -p ${{ secrets.AZURE_CLINET_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
