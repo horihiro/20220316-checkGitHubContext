@@ -3,8 +3,8 @@ name: Azure Login Test
 on:
   workflow_dispatch:
 
-# permissions:
-#   id-token: write
+permissions:
+  id-token: write
 
 jobs:
   login:
