@@ -15,4 +15,4 @@ jobs:
         # az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
         C:\Windows\system32\cmd.exe /D /S /C "C:\Progra~2\Micros~3\Azure\CLI2\wbin\az.cmd login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }} & echo %errorlevel%"
         $?
-        az account show
+        C:\Windows\system32\cmd.exe /D /S /C "C:\Progra~2\Micros~3\Azure\CLI2\wbin\az.cmd account show
