@@ -3,13 +3,24 @@ on:
 
 jobs:
   test1:
+    environment:
+      name: TestEnv
     runs-on: ubuntu-18.04
     steps:
       - run: |
           echo start
 
   test2:
-    needs: test1  
+    needs: test1
+    environment:
+      name: TestEnv
+    runs-on: ubuntu-18.04
+    steps:
+      - run: |
+          echo resumed
+
+  test3:
+    needs: test2
     environment:
       name: TestEnv
     runs-on: ubuntu-18.04
