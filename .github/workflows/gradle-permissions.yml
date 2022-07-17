@@ -1,0 +1,8 @@
+on:
+  workflow_dispatch
+
+jobs:
+  test1:
+    steps:
+      - run: |
+          ls -l $(which gradlew)
