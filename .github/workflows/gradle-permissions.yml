@@ -3,6 +3,7 @@ on:
 
 jobs:
   test1:
+    runs-on: ubuntu-18.04
     steps:
       - run: |
           ls -l $(which gradlew)
