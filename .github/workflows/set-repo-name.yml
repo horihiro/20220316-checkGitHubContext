@@ -1,0 +1,23 @@
+name: Test setting repository name to env
+
+on:
+  workflow_dispatch:      
+
+jobs:
+  first-job:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Set repository name to env
+        run: | 
+          echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}" >> $GITHUB_ENV
+      - run: echo ${{ env.REPOSITORY_NAME }}
+  second-job:
+    runs-on: ubuntu-18.04
+    needs: first-job
+    
+    steps:
+      # - name: Set repository name to env
+      #   run: | 
+      #     echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}" >> $GITHUB_ENV
+      - run: echo ${{ env.REPOSITORY_NAME }}
